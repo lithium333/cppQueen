@@ -11,6 +11,11 @@ typedef struct {
 	int c2;
 } subthr_t;
 
+typedef struct {
+	int type; // 0 none 1 row 2 col
+	int where;
+} violation_t;
+
 void adjplace(std::vector<std::vector<int>> &tabellone, int tabsize, int t, int c1, int c2, bool b[]) {
 	if((c1>0) and (tabellone[c1-1][c2]==-1)) {
 		tabellone[c1-1][c2]=t;
@@ -107,6 +112,13 @@ int main(int argc, char* argv[]) {
 		SDL_Quit();
 		return -1;
 	}
+	SDL_Surface* crosssfc = IMG_Load("resources/violation.png");
+	if(!crosssfc) {
+		SDL_DestroyRenderer(renderer);
+		SDL_DestroyWindow(window);
+		SDL_Quit();
+		return -1;
+	}
 	SDL_Surface* voidwsfc = IMG_Load("resources/void.png");
 	if(!voidwsfc) {
 		SDL_DestroyRenderer(renderer);
@@ -126,6 +138,7 @@ int main(int argc, char* argv[]) {
 	SDL_Texture* texturesizeM = SDL_CreateTextureFromSurface(renderer, sizeMsfc);
 	SDL_Texture* texturesizeS = SDL_CreateTextureFromSurface(renderer, sizeSsfc);
 	SDL_Texture* texturequeen = SDL_CreateTextureFromSurface(renderer, queensfc);
+	SDL_Texture* texturecross = SDL_CreateTextureFromSurface(renderer, crosssfc);
 	SDL_Texture* texturevoidw = SDL_CreateTextureFromSurface(renderer, voidwsfc);
 	SDL_Texture* texturewinsw = SDL_CreateTextureFromSurface(renderer, winswsfc);
 	// GameMode
@@ -183,6 +196,7 @@ int main(int argc, char* argv[]) {
 			SDL_Delay(frameDiff);
 	}
 	// Generate empty structures
+	violation_t wrong = {0,0};
 	std::vector<std::vector<int>> tabellone;
 	std::vector<std::vector<int>> spawncoords;
 	std::vector<int> spawnpoints1;
@@ -265,7 +279,6 @@ int main(int argc, char* argv[]) {
 		auto rng = std::default_random_engine {};
 		std::shuffle(std::begin(subthr_arr), std::end(subthr_arr), rng);
 	}
-	std::cout << "cycles: " << exp_cycles << std::endl;
 	// Game Loop
 	SDL_SetWindowSize(window,50*tabsize+1,50*tabsize+1);
 	SDL_DisplayMode display_mode = SDL_DisplayMode();
@@ -291,6 +304,8 @@ int main(int argc, char* argv[]) {
 					SDL_RenderFillRect(renderer, &rect_coord);
 					if((queens_pos[csel][0]==a) and (queens_pos[csel][1]==b))
 						SDL_RenderCopy(renderer, texturequeen, NULL, &rect_coord);
+					if(((wrong.type==1) and (wrong.where==a)) or ((wrong.type==2) and (wrong.where==b)))
+						SDL_RenderCopy(renderer, texturecross, NULL, &rect_coord);
 				}
 			}
 			SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
@@ -329,12 +344,14 @@ int main(int argc, char* argv[]) {
 					} else {
 						gamelost=true;
 						succ=false;
+						wrong = {1,inp_a};
 					}
 					if(queens_y[inp_b]==-1) {
 						queens_y[inp_b]=color_id;
 					} else {
 						gamelost=true;
 						succ=false;
+						wrong = {2,inp_b};
 					}
 					if(succ)
 						queens_cnt++;
