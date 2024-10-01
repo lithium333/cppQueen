@@ -227,13 +227,14 @@ int main(int argc, char* argv[]) {
 		subthr_arr.push_back({subthr_cnt,spawncoords[subthr_cnt][0],spawncoords[subthr_cnt][1]});
 	}
 	// Expand cells
+	int exp_cycles=0;
+	std::uniform_int_distribution<> distyesno(1, 100);
 	while(subthr_cnt) {
 		int new_cnt=0;
 		std::vector<subthr_t> new_vett;
 		for(int i=0;i<subthr_cnt;i++) {
 			bool ret_vett[4];
-			std::uniform_int_distribution<> distyesno(1, 100);
-			int prob = distyesno(gen);
+			int prob = (exp_cycles>250) ? 100 : distyesno(gen); // expand cycles > 250 : assign 100% prob
 			if(prob>25) { // 25% to place cell at this round
 				adjplace(tabellone,tabsize,subthr_arr[i].id,subthr_arr[i].c1,subthr_arr[i].c2,ret_vett);
 				if(ret_vett[0]) {
@@ -256,6 +257,7 @@ int main(int argc, char* argv[]) {
 				new_vett.push_back({subthr_arr[i].id,subthr_arr[i].c1,subthr_arr[i].c2});
 				new_cnt=new_cnt+1;
 			}
+			exp_cycles++;
 		}
 		subthr_cnt=new_cnt;
 		subthr_arr=new_vett;
@@ -263,6 +265,7 @@ int main(int argc, char* argv[]) {
 		auto rng = std::default_random_engine {};
 		std::shuffle(std::begin(subthr_arr), std::end(subthr_arr), rng);
 	}
+	std::cout << "cycles: " << exp_cycles << std::endl;
 	// Game Loop
 	SDL_SetWindowSize(window,50*tabsize+1,50*tabsize+1);
 	SDL_DisplayMode display_mode = SDL_DisplayMode();
