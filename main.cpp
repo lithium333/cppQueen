@@ -227,26 +227,34 @@ int main(int argc, char* argv[]) {
 		subthr_arr.push_back({subthr_cnt,spawncoords[subthr_cnt][0],spawncoords[subthr_cnt][1]});
 	}
 	// Expand cells
+	
 	while(subthr_cnt) {
 		int new_cnt=0;
 		std::vector<subthr_t> new_vett;
 		for(int i=0;i<subthr_cnt;i++) {
 			bool ret_vett[4];
-			adjplace(tabellone,tabsize,subthr_arr[i].id,subthr_arr[i].c1,subthr_arr[i].c2,ret_vett);
-			if(ret_vett[0]) {
-				new_vett.push_back({subthr_arr[i].id,subthr_arr[i].c1-1,subthr_arr[i].c2});
-				new_cnt=new_cnt+1;
-			}
-			if(ret_vett[1]) {
-				new_vett.push_back({subthr_arr[i].id,subthr_arr[i].c1+1,subthr_arr[i].c2});
-				new_cnt=new_cnt+1;
-			}
-			if(ret_vett[2]) {
-				new_vett.push_back({subthr_arr[i].id,subthr_arr[i].c1,subthr_arr[i].c2-1});
-				new_cnt=new_cnt+1;
-			}
-			if(ret_vett[3]) {
-				new_vett.push_back({subthr_arr[i].id,subthr_arr[i].c1,subthr_arr[i].c2+1});
+			std::uniform_int_distribution<> distyesno(1, 100);
+			int prob = distyesno(gen);
+			if(prob>25) { // 25% to place cell at this round
+				adjplace(tabellone,tabsize,subthr_arr[i].id,subthr_arr[i].c1,subthr_arr[i].c2,ret_vett);
+				if(ret_vett[0]) {
+					new_vett.push_back({subthr_arr[i].id,subthr_arr[i].c1-1,subthr_arr[i].c2});
+					new_cnt=new_cnt+1;
+				}
+				if(ret_vett[1]) {
+					new_vett.push_back({subthr_arr[i].id,subthr_arr[i].c1+1,subthr_arr[i].c2});
+					new_cnt=new_cnt+1;
+				}
+				if(ret_vett[2]) {
+					new_vett.push_back({subthr_arr[i].id,subthr_arr[i].c1,subthr_arr[i].c2-1});
+					new_cnt=new_cnt+1;
+				}
+				if(ret_vett[3]) {
+					new_vett.push_back({subthr_arr[i].id,subthr_arr[i].c1,subthr_arr[i].c2+1});
+					new_cnt=new_cnt+1;
+				}
+			} else {
+				new_vett.push_back({subthr_arr[i].id,subthr_arr[i].c1,subthr_arr[i].c2});
 				new_cnt=new_cnt+1;
 			}
 		}
