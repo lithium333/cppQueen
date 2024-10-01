@@ -227,7 +227,6 @@ int main(int argc, char* argv[]) {
 		subthr_arr.push_back({subthr_cnt,spawncoords[subthr_cnt][0],spawncoords[subthr_cnt][1]});
 	}
 	// Expand cells
-	
 	while(subthr_cnt) {
 		int new_cnt=0;
 		std::vector<subthr_t> new_vett;
@@ -273,34 +272,38 @@ int main(int argc, char* argv[]) {
 	SDL_SetWindowPosition(window, new_x, new_y);
 	running = true;
 	bool gamelost = false;
+	bool needrender = true;
 	int queens_cnt = 0;
 	while(running) {
 		uint32_t frameStart = SDL_GetTicks();
-		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-		SDL_RenderClear(renderer);
-		// Colors & cells
-		for(int a=0;a<tabsize;a++) {
-			for(int b=0;b<tabsize;b++) {
-				int csel = tabellone[a][b];
-				SDL_SetRenderDrawColor(renderer, colors[csel][0], colors[csel][1], colors[csel][2], 255);
-				rect_coord = {50*a, 50*b, 50, 50};
-				SDL_RenderFillRect(renderer, &rect_coord);
-				if((queens_pos[csel][0]==a) and (queens_pos[csel][1]==b))
-					SDL_RenderCopy(renderer, texturequeen, NULL, &rect_coord);
+		if(needrender) {
+			SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+			SDL_RenderClear(renderer);
+			// Colors & cells
+			for(int a=0;a<tabsize;a++) {
+				for(int b=0;b<tabsize;b++) {
+					int csel = tabellone[a][b];
+					SDL_SetRenderDrawColor(renderer, colors[csel][0], colors[csel][1], colors[csel][2], 255);
+					rect_coord = {50*a, 50*b, 50, 50};
+					SDL_RenderFillRect(renderer, &rect_coord);
+					if((queens_pos[csel][0]==a) and (queens_pos[csel][1]==b))
+						SDL_RenderCopy(renderer, texturequeen, NULL, &rect_coord);
+				}
 			}
+			SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+			for(int a=0;a<(tabsize+1);a++) {
+				SDL_RenderDrawLine(renderer,0,50*a,50*tabsize, 50*a);
+				SDL_RenderDrawLine(renderer,50*a,0,50*a,50*tabsize);
+			}
+			// Game status
+			rect_coord = {0,0, 50*tabsize+1, 50*tabsize+1};
+			if(gamelost)
+				SDL_RenderCopy(renderer, texturevoidw, NULL, &rect_coord);
+			else if(queens_cnt==tabsize)
+				SDL_RenderCopy(renderer, texturewinsw, NULL, &rect_coord);
+			SDL_RenderPresent(renderer);
+			needrender=false;
 		}
-		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-		for(int a=0;a<(tabsize+1);a++) {
-			SDL_RenderDrawLine(renderer,0,50*a,50*tabsize, 50*a);
-			SDL_RenderDrawLine(renderer,50*a,0,50*a,50*tabsize);
-		}
-		// Game status
-		rect_coord = {0,0, 50*tabsize+1, 50*tabsize+1};
-		if(gamelost)
-			SDL_RenderCopy(renderer, texturevoidw, NULL, &rect_coord);
-		else if(queens_cnt==tabsize)
-			SDL_RenderCopy(renderer, texturewinsw, NULL, &rect_coord);
-		SDL_RenderPresent(renderer);
 		while (SDL_PollEvent(&e) != 0) {
 			if (e.type == SDL_QUIT) {
 				running = false;
@@ -332,6 +335,7 @@ int main(int argc, char* argv[]) {
 					}
 					if(succ)
 						queens_cnt++;
+					needrender=true;
 				}
 			}
 		}
